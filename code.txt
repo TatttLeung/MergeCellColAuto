@@ -1,0 +1,73 @@
+Sub CommandButton1_Click()
+ Dim rh As Single, mw As Single
+    Dim rng As Range, rrng As Range, n1%, n2%
+    Dim aw As Single, rh1 As Single
+    Dim m$, n$, k
+    Dim ir1, ir2, ic1, ic2
+    Dim mySheet As Worksheet
+    Dim selectedA As Range
+    Dim wrkSheet As Worksheet
+      
+    Application.ScreenUpdating = False
+    Set mySheet = ActiveSheet
+      
+    On Error Resume Next
+    Err.Number = 0
+    Set selectedA = Application.Intersect(ActiveWindow.RangeSelection, mySheet.UsedRange)
+    selectedA.Activate
+    If Err.Number <> 0 Then
+    g = MsgBox("请先选择需要'最合适行高'的行!", vbInformation)
+    Return
+    End If
+      
+    selectedA.EntireRow.AutoFit
+    Set wrkSheet = ActiveWorkbook.Worksheets.Add
+    For Each rrng In selectedA
+        If rrng.Address <> rrng.MergeArea.Address Then
+            If rrng.Address = rrng.MergeArea.Item(1).Address Then
+                  
+                'If (Application.Intersect(selectedA, rrng).Address <> rrng.Address) Then
+                '    GoTo gotoNext
+                'End If
+                  
+                Dim tempCell As Range
+                Dim width As Double
+                Dim tempcol
+                width = 0
+                For Each tempcol In rrng.MergeArea.Columns
+                    width = width + tempcol.ColumnWidth
+                Next
+                wrkSheet.Columns(1).WrapText = True
+                wrkSheet.Columns(1).ColumnWidth = width
+                wrkSheet.Columns(1).Font.Size = rrng.Font.Size
+                wrkSheet.Cells(1, 1).Value = rrng.Value
+                wrkSheet.Activate
+                wrkSheet.Cells(1, 1).RowHeight = 0
+                wrkSheet.Cells(1, 1).EntireRow.Activate
+                wrkSheet.Cells(1, 1).EntireRow.AutoFit
+                mySheet.Activate
+                rrng.Activate
+                If (rrng.RowHeight < wrkSheet.Cells(1, 1).RowHeight) Then
+                    Dim tempHeight As Double
+                    Dim tempCount As Integer
+                    tempHeight = wrkSheet.Cells(1, 1).RowHeight
+                    tempCount = rrng.MergeArea.Rows.Count
+                    For Each addHeightRow In rrng.MergeArea.Rows
+                      
+                        If (addHeightRow.RowHeight < tempHeight / tempCount) Then
+                            addHeightRow.RowHeight = tempHeight / tempCount
+                        End If
+                        tempHeight = tempHeight - addHeightRow.RowHeight
+                        tempCount = tempCount - 1
+                    Next
+                End If
+            End If
+        End If
+  
+  
+    Next
+    Application.DisplayAlerts = False '删除工作表警告提示去消
+    wrkSheet.Delete
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+End Sub
